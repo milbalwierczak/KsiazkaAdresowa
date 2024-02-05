@@ -9,8 +9,13 @@ using namespace std;
 
 struct Adresat
 {
-    int id=0;
+    int id=0, idUzytkownika = 0;
     string imie="", nazwisko="", numerTelefonu="", email="", adres="";
+};
+
+struct Uzytkownik{
+    int id = 0;
+    string nazwa = "", haslo = "";
 };
 
 string wczytajLinie()
@@ -57,13 +62,108 @@ char wczytajZnak()
     return znak;
 }
 
-void dodajAdresata(vector <Adresat> &adresaci)
+void dodajUzytkownika(vector <Uzytkownik> &uzytkownicy)
+{
+    string nazwa, haslo;
+    fstream plik;
+    Uzytkownik dodawanyUzytkownik;
+
+    plik.open("Uzytkownicy.txt", ios::app);
+
+    !uzytkownicy.empty() ? dodawanyUzytkownik.id = uzytkownicy.back().id + 1: dodawanyUzytkownik.id = 1;
+    cout << "Podaj login: ";
+    dodawanyUzytkownik.nazwa = wczytajLinie();
+    cout << "Podaj haslo: ";
+    dodawanyUzytkownik.haslo = wczytajLinie();
+
+    uzytkownicy.push_back(dodawanyUzytkownik);
+
+    plik << dodawanyUzytkownik.id << "|";
+    plik << dodawanyUzytkownik.nazwa << "|";
+    plik << dodawanyUzytkownik.haslo << "|" << endl;
+    plik.close();
+
+    cout << "Uzytkownik dodany" << endl;
+
+    Sleep(1000);
+}
+
+Uzytkownik odczytajUzytkownika(string linia)
+{
+    Uzytkownik odczytywanyUzytkownik;
+    linia.erase(linia.find_last_of("|"));
+    odczytywanyUzytkownik.haslo = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    odczytywanyUzytkownik.nazwa = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    odczytywanyUzytkownik.id = stoi(linia);
+    return odczytywanyUzytkownik;
+}
+
+void wczytajUzytkownikow(vector <Uzytkownik> &uzytkownicy)
+{
+    string linia = "";
+    fstream plik;
+    Uzytkownik wczytywanyUzytkownik;
+
+    plik.open("Uzytkownicy.txt", ios::in);
+
+    while(getline(plik, linia))
+    {
+        wczytywanyUzytkownik = odczytajUzytkownika(linia);
+        uzytkownicy.push_back(wczytywanyUzytkownik);
+    }
+    plik.close();
+}
+
+int zalogujUzytkownika(vector <Uzytkownik> &uzytkownicy){
+    int liczbaPozostalychProb = 3;
+    string nazwa, haslo;
+    cout << "Podaj login: ";
+    nazwa = wczytajLinie();
+
+        auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
+                        [&](Uzytkownik const & uzytkownik)
+    {
+        return uzytkownik.nazwa == nazwa;
+    });
+
+    if ( iter != uzytkownicy.end() )
+    {
+        while(liczbaPozostalychProb>0){
+            cout << "Podaj haslo. Pozostalo prob: " << liczbaPozostalychProb << ": ";
+            haslo = wczytajLinie();
+
+            if (iter->haslo == haslo){
+                cout << "Zalogowano pomyslnie";
+                Sleep(1000);
+                return iter->id;
+            }
+            else {
+                cout << "Zle haslo!" << endl;
+                liczbaPozostalychProb--;
+            }
+        }
+             cout << "Wykorzystano wszystkie proby. Przerwano operacje";
+        Sleep(1000);
+        return 0;
+    }
+
+    else
+    {
+        cout << "Brak uzytkownika o podanym loginie. Przerwano operacje";
+        Sleep(1000);
+        return 0;
+    }
+}
+
+void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
 {
     string imie, nazwisko, numerTelefonu, email, adres;
     fstream plik;
     Adresat dodawanyAdresat;
 
-    plik.open("ksiazka_adresowa.txt", ios::app);
+    plik.open("Adresaci.txt", ios::app);
 
     !adresaci.empty() ? dodawanyAdresat.id = adresaci.back().id + 1: dodawanyAdresat.id = 1;
     cout << "Podaj imie: ";
@@ -77,9 +177,12 @@ void dodajAdresata(vector <Adresat> &adresaci)
     cout << "Podaj adres: ";
     dodawanyAdresat.adres = wczytajLinie();
 
+    dodawanyAdresat.idUzytkownika = idZalogowanegoUzytkownika;
+
     adresaci.push_back(dodawanyAdresat);
 
     plik << dodawanyAdresat.id << "|";
+    plik << dodawanyAdresat.idUzytkownika << "|";
     plik << dodawanyAdresat.imie << "|";
     plik << dodawanyAdresat.nazwisko << "|";
     plik << dodawanyAdresat.numerTelefonu << "|";
@@ -96,11 +199,12 @@ void zaktualizujKsiazkeAdresowa(vector <Adresat> adresaci)
 {
     fstream plik;
 
-    plik.open("ksiazka_adresowa.txt", ios::out);
+    plik.open("Adresaci.txt", ios::out);
 
     for(Adresat adresat : adresaci)
     {
         plik << adresat.id << "|";
+        plik << adresat.idUzytkownika << "|";
         plik << adresat.imie << "|";
         plik << adresat.nazwisko << "|";
         plik << adresat.numerTelefonu << "|";
@@ -146,6 +250,8 @@ Adresat odczytajAdresata(string linia)
     adresat.nazwisko = linia.substr(linia.find_last_of("|")+1);
     linia.erase(linia.find_last_of("|"));
     adresat.imie = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    adresat.idUzytkownika = stoi(linia.substr(linia.find_last_of("|")+1));
     linia.erase(linia.find_last_of("|"));
     adresat.id = stoi(linia);
     return adresat;
@@ -195,13 +301,7 @@ void wczytajAdresatow(vector <Adresat> &adresaci)
     fstream plik;
     Adresat wczytywanyAdrestat;
 
-    plik.open("ksiazka_adresowa.txt", ios::in);
-
-    if(!plik.good())
-    {
-        cout << "Plik nie istnieje! Nowy plik zostnie stworzony przy wpisywaniu pierwszego adresata." << endl;
-        system("pause");
-    }
+    plik.open("Adresaci.txt", ios::in);
 
     while(getline(plik, linia))
     {
@@ -315,49 +415,84 @@ void edytujAdresata(vector<Adresat> &adresaci)
 
 int main()
 {
+    int idZalogowanegoUzytkownika = 0;
+    vector <Uzytkownik> uzytkownicy;
     vector <Adresat> adresaci;
     char wybor;
 
-    wczytajAdresatow(adresaci);
+    wczytajUzytkownikow(uzytkownicy);
 
     while(1)
     {
-        system("cls");
-        cout << "KSIAZKA ADRESOWA" << endl;
+        if(idZalogowanegoUzytkownika == 0){
+
+     system("cls");
+        cout << ">>> MENU  GLOWNE <<<" << endl;
+        cout << "--------------------------" << endl;
+        cout << "1. Rejestracja" << endl;
+        cout << "2. Logowanie" << endl;
+        cout << "--------------------------" << endl;
+        cout << "9. Zakoncz program" << endl << endl;
+        cout << "Twoj wybor: ";
+        wybor = wczytajZnak();
+
+        switch (wybor)
+            {
+            case '1':
+                dodajUzytkownika(uzytkownicy);
+                break;
+            case '2':
+                idZalogowanegoUzytkownika = zalogujUzytkownika(uzytkownicy);
+                break;
+            case '9':
+                exit(0);
+                break;
+
+            }
+        }
+
+        else {
+
+    wczytajAdresatow(adresaci);
+     system("cls");
+        cout << ">>> MENU  UZYTKOWNIKA <<<" << idZalogowanegoUzytkownika << endl;
+        cout << "--------------------------" << endl;
         cout << "1. Dodaj adresata" << endl;
         cout << "2. Wyszukaj adresata po imieniu" << endl;
         cout << "3. Wyszukaj adresata po nazwisku" << endl;
         cout << "4. Wyswietl wszystkich adresatow" << endl;
         cout << "5. Usun adresata" << endl;
         cout << "6. Edytuj adresata" << endl;
+        cout << "--------------------------" << endl;
         cout << "9. Zakoncz program" << endl << endl;
         cout << "Twoj wybor: ";
         wybor = wczytajZnak();
 
         switch (wybor)
-        {
-        case '1':
-            dodajAdresata(adresaci);
-            break;
-        case '2':
-            wyszukajAdresataPoImieniu(adresaci);
-            break;
-        case '3':
-            wyszukajAdresataPoNazwisku(adresaci);
-            break;
-        case '4':
-            wyswietlWszystkichAdresatow(adresaci);
-            break;
-        case '5':
-            usunAdresata(adresaci);
-            break;
-        case '6':
-            edytujAdresata(adresaci);
-            break;
-        case '9':
-            exit(0);
-            break;
+            {
+            case '1':
+                dodajAdresata(adresaci, idZalogowanegoUzytkownika);
+                break;
+            case '2':
+                wyszukajAdresataPoImieniu(adresaci);
+                break;
+            case '3':
+                wyszukajAdresataPoNazwisku(adresaci);
+                break;
+            case '4':
+                wyswietlWszystkichAdresatow(adresaci);
+                break;
+            case '5':
+                usunAdresata(adresaci);
+                break;
+            case '6':
+                edytujAdresata(adresaci);
+                break;
+            case '9':
+                exit(0);
+                break;
 
+            }
         }
     }
     return 0;

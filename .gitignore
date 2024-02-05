@@ -1,1 +1,6 @@
 KsiazkaAdresowa.cbp
+KsiazkaAdresowa.depend
+bin/
+obj/
+Adresaci.txt
+Uzytkownicy.txt
