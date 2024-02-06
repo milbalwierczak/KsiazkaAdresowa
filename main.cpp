@@ -295,7 +295,7 @@ void wyszukajAdresataPoNazwisku(vector <Adresat> adresaci)
     system("pause");
 }
 
-void wczytajAdresatow(vector <Adresat> &adresaci)
+void wczytajAdresatow(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
 {
     string linia = "";
     fstream plik;
@@ -306,7 +306,7 @@ void wczytajAdresatow(vector <Adresat> &adresaci)
     while(getline(plik, linia))
     {
         wczytywanyAdrestat = odczytajAdresata(linia);
-        adresaci.push_back(wczytywanyAdrestat);
+        if(wczytywanyAdrestat.idUzytkownika == idZalogowanegoUzytkownika) adresaci.push_back(wczytywanyAdrestat);
     }
     plik.close();
 }
@@ -453,7 +453,7 @@ int main()
 
         else {
 
-    wczytajAdresatow(adresaci);
+    wczytajAdresatow(adresaci, idZalogowanegoUzytkownika);
      system("cls");
         cout << ">>> MENU  UZYTKOWNIKA <<<" << idZalogowanegoUzytkownika << endl;
         cout << "--------------------------" << endl;
@@ -464,6 +464,7 @@ int main()
         cout << "5. Usun adresata" << endl;
         cout << "6. Edytuj adresata" << endl;
         cout << "--------------------------" << endl;
+        cout << "8. Wyloguj sie" << endl << endl;
         cout << "9. Zakoncz program" << endl << endl;
         cout << "Twoj wybor: ";
         wybor = wczytajZnak();
@@ -487,6 +488,10 @@ int main()
                 break;
             case '6':
                 edytujAdresata(adresaci);
+                break;
+            case '8':
+                idZalogowanegoUzytkownika = 0;
+                adresaci.clear();
                 break;
             case '9':
                 exit(0);
