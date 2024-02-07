@@ -157,6 +157,47 @@ int zalogujUzytkownika(vector <Uzytkownik> &uzytkownicy){
     }
 }
 
+Adresat odczytajAdresata(string linia)
+{
+    Adresat adresat;
+    linia.erase(linia.find_last_of("|"));
+    adresat.adres = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    adresat.email = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    adresat.numerTelefonu = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    adresat.nazwisko = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    adresat.imie = linia.substr(linia.find_last_of("|")+1);
+    linia.erase(linia.find_last_of("|"));
+    adresat.idUzytkownika = stoi(linia.substr(linia.find_last_of("|")+1));
+    linia.erase(linia.find_last_of("|"));
+    adresat.id = stoi(linia);
+    return adresat;
+}
+
+int odczytajOstatnieIdAdresata(){
+
+    int ostatnieId = 1;
+    Adresat wczytywanyAdresat;
+    fstream plik;
+    string linia;
+
+    plik.open("Adresaci.txt", ios::in);
+
+    while(getline(plik, linia))
+    {
+        wczytywanyAdresat = odczytajAdresata(linia);
+        ostatnieId = wczytywanyAdresat.id;
+    }
+
+    plik.close();
+
+    return ostatnieId;
+}
+
+
 void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
 {
     string imie, nazwisko, numerTelefonu, email, adres;
@@ -165,7 +206,9 @@ void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
 
     plik.open("Adresaci.txt", ios::app);
 
-    !adresaci.empty() ? dodawanyAdresat.id = adresaci.back().id + 1: dodawanyAdresat.id = 1;
+    dodawanyAdresat.id = odczytajOstatnieIdAdresata() + 1;
+    dodawanyAdresat.idUzytkownika = idZalogowanegoUzytkownika;
+
     cout << "Podaj imie: ";
     dodawanyAdresat.imie = wczytajLinie();
     cout << "Podaj nazwisko: ";
@@ -176,8 +219,6 @@ void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
     dodawanyAdresat.email = wczytajLinie();
     cout << "Podaj adres: ";
     dodawanyAdresat.adres = wczytajLinie();
-
-    dodawanyAdresat.idUzytkownika = idZalogowanegoUzytkownika;
 
     adresaci.push_back(dodawanyAdresat);
 
@@ -235,26 +276,6 @@ void wyswietlWszystkichAdresatow(vector <Adresat> adresaci)
         wyswietlAdresata(adresat);
     }
     system("pause");
-}
-
-Adresat odczytajAdresata(string linia)
-{
-    Adresat adresat;
-    linia.erase(linia.find_last_of("|"));
-    adresat.adres = linia.substr(linia.find_last_of("|")+1);
-    linia.erase(linia.find_last_of("|"));
-    adresat.email = linia.substr(linia.find_last_of("|")+1);
-    linia.erase(linia.find_last_of("|"));
-    adresat.numerTelefonu = linia.substr(linia.find_last_of("|")+1);
-    linia.erase(linia.find_last_of("|"));
-    adresat.nazwisko = linia.substr(linia.find_last_of("|")+1);
-    linia.erase(linia.find_last_of("|"));
-    adresat.imie = linia.substr(linia.find_last_of("|")+1);
-    linia.erase(linia.find_last_of("|"));
-    adresat.idUzytkownika = stoi(linia.substr(linia.find_last_of("|")+1));
-    linia.erase(linia.find_last_of("|"));
-    adresat.id = stoi(linia);
-    return adresat;
 }
 
 void wyszukajAdresataPoImieniu(vector <Adresat> adresaci)
@@ -443,6 +464,7 @@ int main()
                 break;
             case '2':
                 idZalogowanegoUzytkownika = zalogujUzytkownika(uzytkownicy);
+                wczytajAdresatow(adresaci, idZalogowanegoUzytkownika);
                 break;
             case '9':
                 exit(0);
@@ -452,8 +474,6 @@ int main()
         }
 
         else {
-
-    wczytajAdresatow(adresaci, idZalogowanegoUzytkownika);
      system("cls");
         cout << ">>> MENU  UZYTKOWNIKA <<<" << idZalogowanegoUzytkownika << endl;
         cout << "--------------------------" << endl;
