@@ -226,7 +226,7 @@ Adresat odczytajAdresata(string linia)
 
 int odczytajOstatnieIdAdresata(){
 
-    int ostatnieId = 1;
+    int ostatnieId = 0;
     Adresat wczytywanyAdresat;
     fstream plik;
     string linia;
@@ -276,18 +276,55 @@ void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
     Sleep(1000);
 }
 
-void zaktualizujKsiazkeAdresowa(vector <Adresat> adresaci)
+void zaktualizujKsiazkeAdresowaPoEdycji(Adresat edytowanyAdresat)
 {
-    fstream plik;
+    fstream plikOryginalny, plikTymczasowy;
+    Adresat wczytywanyAdresat;
+    string linia;
 
-    plik.open("Adresaci.txt", ios::out);
+    plikOryginalny.open("Adresaci.txt", ios::in);
+    plikTymczasowy.open("Adresaci_tymczasowy.txt", ios::app);
 
-    for(Adresat adresat : adresaci)
-    {
-        plik << stworzStringAdresat(adresat) << endl;
-    }
+    while(getline(plikOryginalny, linia))
+        {
+            wczytywanyAdresat = odczytajAdresata(linia);
+            if(wczytywanyAdresat.id == edytowanyAdresat.id){
+                plikTymczasowy << stworzStringAdresat(edytowanyAdresat) << endl;
+            }
+            else{
+                plikTymczasowy << linia << endl;
+            }
+        }
 
-    plik.close();
+    plikOryginalny.close();
+    plikTymczasowy.close();
+
+    remove("Adresaci.txt");
+    rename("Adresaci_tymczasowy.txt","Adresaci.txt");
+}
+
+void zaktualizujKsiazkeAdresowaPoUsunieciu(Adresat usuwanyAdresat)
+{
+    fstream plikOryginalny, plikTymczasowy;
+    Adresat wczytywanyAdresat;
+    string linia;
+
+    plikOryginalny.open("Adresaci.txt", ios::in);
+    plikTymczasowy.open("Adresaci_tymczasowy.txt", ios::app);
+
+    while(getline(plikOryginalny, linia))
+        {
+            wczytywanyAdresat = odczytajAdresata(linia);
+            if(wczytywanyAdresat.id != usuwanyAdresat.id){
+                plikTymczasowy << linia << endl;
+            }
+        }
+
+    plikOryginalny.close();
+    plikTymczasowy.close();
+
+    remove("Adresaci.txt");
+    rename("Adresaci_tymczasowy.txt","Adresaci.txt");
 }
 
 void wyswietlAdresata(Adresat adresat)
@@ -303,7 +340,8 @@ void wyswietlAdresata(Adresat adresat)
 void wyswietlWszystkichAdresatow(vector <Adresat> adresaci)
 {
     system("cls");
-    cout << "KSIAZKA ADRESOWA" << endl << endl;
+    cout << "           >>> ADRESACI <<<" << endl;
+    cout << "----------------------------------------" << endl << endl;
 
     for(Adresat adresat : adresaci)
     {
@@ -387,9 +425,8 @@ void usunAdresata(vector<Adresat> &adresaci)
 
         if(potwierdzenie == 't')
         {
+            zaktualizujKsiazkeAdresowaPoUsunieciu(*iter);
             adresaci.erase(iter);
-
-            zaktualizujKsiazkeAdresowa(adresaci);
             cout << "Adresat usuniety pomyslnie";
         }
 
@@ -455,7 +492,7 @@ void edytujAdresata(vector<Adresat> &adresaci)
             iter->adres = nowaWartosc;
             break;
         }
-        zaktualizujKsiazkeAdresowa(adresaci);
+        zaktualizujKsiazkeAdresowaPoEdycji(*iter);
         cout << "Edycja zakonczona pomyslnie";
     }
 
@@ -482,7 +519,7 @@ int main()
         if(idZalogowanegoUzytkownika == 0){
 
      system("cls");
-        cout << ">>> MENU  GLOWNE <<<" << endl;
+        cout << "   >>> MENU  GLOWNE <<<" << endl;
         cout << "--------------------------" << endl;
         cout << "1. Rejestracja" << endl;
         cout << "2. Logowanie" << endl;
@@ -519,8 +556,7 @@ int main()
         cout << "6. Edytuj adresata" << endl;
         cout << "--------------------------" << endl;
         cout << "7. Zmien haslo" << endl;
-        cout << "8. Wyloguj sie" << endl;
-        cout << "9. Zakoncz program" << endl << endl;
+        cout << "8. Wyloguj sie" << endl << endl;
         cout << "Twoj wybor: ";
         wybor = wczytajZnak();
 
@@ -550,9 +586,6 @@ int main()
             case '8':
                 idZalogowanegoUzytkownika = 0;
                 adresaci.clear();
-                break;
-            case '9':
-                exit(0);
                 break;
 
             }
