@@ -168,6 +168,42 @@ int zalogujUzytkownika(vector <Uzytkownik> &uzytkownicy){
     }
 }
 
+void zaktualizujListeUzytkownikow(vector <Uzytkownik> uzytkownicy)
+{
+    fstream plik;
+
+    plik.open("Uzytkownicy.txt", ios::out);
+
+    for(Uzytkownik uzytkownik : uzytkownicy)
+    {
+        plik << stworzStringUzytkownik(uzytkownik) << endl;
+    }
+
+    plik.close();
+}
+
+void zmienHaslo(vector<Uzytkownik> &uzytkownicy, int idZalogowanegoUzytkownika)
+{
+    string nowaWartosc;
+
+    auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
+                        [&](Uzytkownik const & uzytkownik)
+    {
+        return uzytkownik.id == idZalogowanegoUzytkownika;
+    });
+
+    cout << "Podaj nowe haslo: ";
+    nowaWartosc = wczytajLinie();
+
+    iter->haslo = nowaWartosc;
+
+    zaktualizujListeUzytkownikow(uzytkownicy);
+    cout << "Zmiana hasla zakonczona pomyslnie";
+
+    Sleep(1000);
+
+}
+
 Adresat odczytajAdresata(string linia)
 {
     Adresat adresat;
@@ -206,42 +242,6 @@ int odczytajOstatnieIdAdresata(){
     plik.close();
 
     return ostatnieId;
-}
-
-void zaktualizujListeUzytkownikow(vector <Uzytkownik> uzytkownicy)
-{
-    fstream plik;
-
-    plik.open("Uzytkownicy.txt", ios::out);
-
-    for(Uzytkownik uzytkownik : uzytkownicy)
-    {
-        plik << stworzStringUzytkownik(uzytkownik) << endl;
-    }
-
-    plik.close();
-}
-
-void zmienHaslo(vector<Uzytkownik> &uzytkownicy, int idZalogowanegoUzytkownika)
-{
-    string nowaWartosc;
-
-    auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
-                        [&](Uzytkownik const & uzytkownik)
-    {
-        return uzytkownik.id == idZalogowanegoUzytkownika;
-    });
-
-    cout << "Podaj nowe haslo: ";
-    nowaWartosc = wczytajLinie();
-
-    iter->haslo = nowaWartosc;
-
-    zaktualizujListeUzytkownikow(uzytkownicy);
-    cout << "Zmiana hasla zakonczona pomyslnie";
-
-    Sleep(1000);
-
 }
 
 void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
