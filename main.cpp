@@ -62,6 +62,19 @@ char wczytajZnak()
     return znak;
 }
 
+string stworzStringAdresat(Adresat adresat){
+    string linia;
+    linia = to_string(adresat.id) + "|" + to_string(adresat.idUzytkownika) + "|" + adresat.imie + "|" +
+    adresat.nazwisko + "|" + adresat.numerTelefonu + "|" + adresat.email + "|" + adresat.adres + "|";
+    return linia;
+}
+
+string stworzStringUzytkownik(Uzytkownik uzytkownik){
+    string linia;
+    linia = to_string(uzytkownik.id) + "|" + uzytkownik.nazwa + "|" + uzytkownik.haslo + "|";
+    return linia;
+}
+
 void dodajUzytkownika(vector <Uzytkownik> &uzytkownicy)
 {
     string nazwa, haslo;
@@ -78,9 +91,7 @@ void dodajUzytkownika(vector <Uzytkownik> &uzytkownicy)
 
     uzytkownicy.push_back(dodawanyUzytkownik);
 
-    plik << dodawanyUzytkownik.id << "|";
-    plik << dodawanyUzytkownik.nazwa << "|";
-    plik << dodawanyUzytkownik.haslo << "|" << endl;
+    plik << stworzStringUzytkownik(dodawanyUzytkownik) << endl;
     plik.close();
 
     cout << "Uzytkownik dodany" << endl;
@@ -197,6 +208,41 @@ int odczytajOstatnieIdAdresata(){
     return ostatnieId;
 }
 
+void zaktualizujListeUzytkownikow(vector <Uzytkownik> uzytkownicy)
+{
+    fstream plik;
+
+    plik.open("Uzytkownicy.txt", ios::out);
+
+    for(Uzytkownik uzytkownik : uzytkownicy)
+    {
+        plik << stworzStringUzytkownik(uzytkownik) << endl;
+    }
+
+    plik.close();
+}
+
+void zmienHaslo(vector<Uzytkownik> &uzytkownicy, int idZalogowanegoUzytkownika)
+{
+    string nowaWartosc;
+
+    auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
+                        [&](Uzytkownik const & uzytkownik)
+    {
+        return uzytkownik.id == idZalogowanegoUzytkownika;
+    });
+
+    cout << "Podaj nowe haslo: ";
+    nowaWartosc = wczytajLinie();
+
+    iter->haslo = nowaWartosc;
+
+    zaktualizujListeUzytkownikow(uzytkownicy);
+    cout << "Zmiana hasla zakonczona pomyslnie";
+
+    Sleep(1000);
+
+}
 
 void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
 {
@@ -222,13 +268,7 @@ void dodajAdresata(vector <Adresat> &adresaci, int idZalogowanegoUzytkownika)
 
     adresaci.push_back(dodawanyAdresat);
 
-    plik << dodawanyAdresat.id << "|";
-    plik << dodawanyAdresat.idUzytkownika << "|";
-    plik << dodawanyAdresat.imie << "|";
-    plik << dodawanyAdresat.nazwisko << "|";
-    plik << dodawanyAdresat.numerTelefonu << "|";
-    plik << dodawanyAdresat.email << "|";
-    plik << dodawanyAdresat.adres << "|" << endl;
+    plik << stworzStringAdresat(dodawanyAdresat) << endl;
     plik.close();
 
     cout << "Adresat dodany" << endl;
@@ -244,13 +284,7 @@ void zaktualizujKsiazkeAdresowa(vector <Adresat> adresaci)
 
     for(Adresat adresat : adresaci)
     {
-        plik << adresat.id << "|";
-        plik << adresat.idUzytkownika << "|";
-        plik << adresat.imie << "|";
-        plik << adresat.nazwisko << "|";
-        plik << adresat.numerTelefonu << "|";
-        plik << adresat.email << "|";
-        plik << adresat.adres << "|" << endl;
+        plik << stworzStringAdresat(adresat) << endl;
     }
 
     plik.close();
@@ -484,7 +518,8 @@ int main()
         cout << "5. Usun adresata" << endl;
         cout << "6. Edytuj adresata" << endl;
         cout << "--------------------------" << endl;
-        cout << "8. Wyloguj sie" << endl << endl;
+        cout << "7. Zmien haslo" << endl;
+        cout << "8. Wyloguj sie" << endl;
         cout << "9. Zakoncz program" << endl << endl;
         cout << "Twoj wybor: ";
         wybor = wczytajZnak();
@@ -508,6 +543,9 @@ int main()
                 break;
             case '6':
                 edytujAdresata(adresaci);
+                break;
+            case '7':
+                zmienHaslo(uzytkownicy, idZalogowanegoUzytkownika);
                 break;
             case '8':
                 idZalogowanegoUzytkownika = 0;
