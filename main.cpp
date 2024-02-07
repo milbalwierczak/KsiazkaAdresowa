@@ -13,7 +13,8 @@ struct Adresat
     string imie="", nazwisko="", numerTelefonu="", email="", adres="";
 };
 
-struct Uzytkownik{
+struct Uzytkownik
+{
     int id = 0;
     string nazwa = "", haslo = "";
 };
@@ -62,14 +63,16 @@ char wczytajZnak()
     return znak;
 }
 
-string stworzStringAdresat(Adresat adresat){
+string stworzStringAdresat(Adresat adresat)
+{
     string linia;
     linia = to_string(adresat.id) + "|" + to_string(adresat.idUzytkownika) + "|" + adresat.imie + "|" +
-    adresat.nazwisko + "|" + adresat.numerTelefonu + "|" + adresat.email + "|" + adresat.adres + "|";
+            adresat.nazwisko + "|" + adresat.numerTelefonu + "|" + adresat.email + "|" + adresat.adres + "|";
     return linia;
 }
 
-string stworzStringUzytkownik(Uzytkownik uzytkownik){
+string stworzStringUzytkownik(Uzytkownik uzytkownik)
+{
     string linia;
     linia = to_string(uzytkownik.id) + "|" + uzytkownik.nazwa + "|" + uzytkownik.haslo + "|";
     return linia;
@@ -86,17 +89,33 @@ void dodajUzytkownika(vector <Uzytkownik> &uzytkownicy)
     !uzytkownicy.empty() ? dodawanyUzytkownik.id = uzytkownicy.back().id + 1: dodawanyUzytkownik.id = 1;
     cout << "Podaj login: ";
     dodawanyUzytkownik.nazwa = wczytajLinie();
-    cout << "Podaj haslo: ";
-    dodawanyUzytkownik.haslo = wczytajLinie();
 
-    uzytkownicy.push_back(dodawanyUzytkownik);
+    auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
+                        [&](Uzytkownik const & uzytkownik)
+    {
+        return uzytkownik.nazwa == dodawanyUzytkownik.nazwa;
+    });
 
-    plik << stworzStringUzytkownik(dodawanyUzytkownik) << endl;
-    plik.close();
+    if ( iter == uzytkownicy.end() )
+    {
+        cout << "Podaj haslo: ";
+        dodawanyUzytkownik.haslo = wczytajLinie();
 
-    cout << "Uzytkownik dodany" << endl;
+        uzytkownicy.push_back(dodawanyUzytkownik);
 
-    Sleep(1000);
+        plik << stworzStringUzytkownik(dodawanyUzytkownik) << endl;
+        plik.close();
+
+        cout << "Uzytkownik dodany" << endl;
+
+        Sleep(1000);
+    }
+
+    else
+    {
+        cout << "Uzytkownik o podanym loginie juz istnieje. Stworz konto ponownie podajac inny login";
+        Sleep(3000);
+    }
 }
 
 Uzytkownik odczytajUzytkownika(string linia)
@@ -127,13 +146,14 @@ void wczytajUzytkownikow(vector <Uzytkownik> &uzytkownicy)
     plik.close();
 }
 
-int zalogujUzytkownika(vector <Uzytkownik> &uzytkownicy){
+int zalogujUzytkownika(vector <Uzytkownik> &uzytkownicy)
+{
     int liczbaPozostalychProb = 3;
     string nazwa, haslo;
     cout << "Podaj login: ";
     nazwa = wczytajLinie();
 
-        auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
+    auto iter = find_if(uzytkownicy.begin(), uzytkownicy.end(),
                         [&](Uzytkownik const & uzytkownik)
     {
         return uzytkownik.nazwa == nazwa;
@@ -141,21 +161,24 @@ int zalogujUzytkownika(vector <Uzytkownik> &uzytkownicy){
 
     if ( iter != uzytkownicy.end() )
     {
-        while(liczbaPozostalychProb>0){
+        while(liczbaPozostalychProb>0)
+        {
             cout << "Podaj haslo. Pozostalo prob: " << liczbaPozostalychProb << ": ";
             haslo = wczytajLinie();
 
-            if (iter->haslo == haslo){
+            if (iter->haslo == haslo)
+            {
                 cout << "Zalogowano pomyslnie";
                 Sleep(1000);
                 return iter->id;
             }
-            else {
+            else
+            {
                 cout << "Zle haslo!" << endl;
                 liczbaPozostalychProb--;
             }
         }
-             cout << "Wykorzystano wszystkie proby. Przerwano operacje";
+        cout << "Wykorzystano wszystkie proby. Przerwano operacje";
         Sleep(1000);
         return 0;
     }
@@ -224,8 +247,8 @@ Adresat odczytajAdresata(string linia)
     return adresat;
 }
 
-int odczytajOstatnieIdAdresata(){
-
+int odczytajOstatnieIdAdresata()
+{
     int ostatnieId = 0;
     Adresat wczytywanyAdresat;
     fstream plik;
@@ -286,15 +309,17 @@ void zaktualizujKsiazkeAdresowaPoEdycji(Adresat edytowanyAdresat)
     plikTymczasowy.open("Adresaci_tymczasowy.txt", ios::app);
 
     while(getline(plikOryginalny, linia))
+    {
+        wczytywanyAdresat = odczytajAdresata(linia);
+        if(wczytywanyAdresat.id == edytowanyAdresat.id)
         {
-            wczytywanyAdresat = odczytajAdresata(linia);
-            if(wczytywanyAdresat.id == edytowanyAdresat.id){
-                plikTymczasowy << stworzStringAdresat(edytowanyAdresat) << endl;
-            }
-            else{
-                plikTymczasowy << linia << endl;
-            }
+            plikTymczasowy << stworzStringAdresat(edytowanyAdresat) << endl;
         }
+        else
+        {
+            plikTymczasowy << linia << endl;
+        }
+    }
 
     plikOryginalny.close();
     plikTymczasowy.close();
@@ -313,12 +338,13 @@ void zaktualizujKsiazkeAdresowaPoUsunieciu(Adresat usuwanyAdresat)
     plikTymczasowy.open("Adresaci_tymczasowy.txt", ios::app);
 
     while(getline(plikOryginalny, linia))
+    {
+        wczytywanyAdresat = odczytajAdresata(linia);
+        if(wczytywanyAdresat.id != usuwanyAdresat.id)
         {
-            wczytywanyAdresat = odczytajAdresata(linia);
-            if(wczytywanyAdresat.id != usuwanyAdresat.id){
-                plikTymczasowy << linia << endl;
-            }
+            plikTymczasowy << linia << endl;
         }
+    }
 
     plikOryginalny.close();
     plikTymczasowy.close();
@@ -516,19 +542,20 @@ int main()
 
     while(1)
     {
-        if(idZalogowanegoUzytkownika == 0){
+        if(idZalogowanegoUzytkownika == 0)
+        {
 
-     system("cls");
-        cout << "   >>> MENU  GLOWNE <<<" << endl;
-        cout << "--------------------------" << endl;
-        cout << "1. Rejestracja" << endl;
-        cout << "2. Logowanie" << endl;
-        cout << "--------------------------" << endl;
-        cout << "9. Zakoncz program" << endl << endl;
-        cout << "Twoj wybor: ";
-        wybor = wczytajZnak();
+            system("cls");
+            cout << "   >>> MENU  GLOWNE <<<" << endl;
+            cout << "--------------------------" << endl;
+            cout << "1. Rejestracja" << endl;
+            cout << "2. Logowanie" << endl;
+            cout << "--------------------------" << endl;
+            cout << "9. Zakoncz program" << endl << endl;
+            cout << "Twoj wybor: ";
+            wybor = wczytajZnak();
 
-        switch (wybor)
+            switch (wybor)
             {
             case '1':
                 dodajUzytkownika(uzytkownicy);
@@ -544,23 +571,24 @@ int main()
             }
         }
 
-        else {
-     system("cls");
-        cout << ">>> MENU  UZYTKOWNIKA <<<" << idZalogowanegoUzytkownika << endl;
-        cout << "--------------------------" << endl;
-        cout << "1. Dodaj adresata" << endl;
-        cout << "2. Wyszukaj adresata po imieniu" << endl;
-        cout << "3. Wyszukaj adresata po nazwisku" << endl;
-        cout << "4. Wyswietl wszystkich adresatow" << endl;
-        cout << "5. Usun adresata" << endl;
-        cout << "6. Edytuj adresata" << endl;
-        cout << "--------------------------" << endl;
-        cout << "7. Zmien haslo" << endl;
-        cout << "8. Wyloguj sie" << endl << endl;
-        cout << "Twoj wybor: ";
-        wybor = wczytajZnak();
+        else
+        {
+            system("cls");
+            cout << "    >>> MENU  UZYTKOWNIKA <<<" << endl;
+            cout << "---------------------------------" << endl;
+            cout << "1. Dodaj adresata" << endl;
+            cout << "2. Wyszukaj adresata po imieniu" << endl;
+            cout << "3. Wyszukaj adresata po nazwisku" << endl;
+            cout << "4. Wyswietl wszystkich adresatow" << endl;
+            cout << "5. Usun adresata" << endl;
+            cout << "6. Edytuj adresata" << endl;
+            cout << "---------------------------------" << endl;
+            cout << "7. Zmien haslo" << endl;
+            cout << "8. Wyloguj sie" << endl << endl;
+            cout << "Twoj wybor: ";
+            wybor = wczytajZnak();
 
-        switch (wybor)
+            switch (wybor)
             {
             case '1':
                 dodajAdresata(adresaci, idZalogowanegoUzytkownika);
@@ -587,7 +615,6 @@ int main()
                 idZalogowanegoUzytkownika = 0;
                 adresaci.clear();
                 break;
-
             }
         }
     }
